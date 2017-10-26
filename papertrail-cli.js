@@ -19,7 +19,7 @@ const argv = require('yargs')
 })
 .option('regex', {
   describe: 'regex to match',
-  alias: 'r',
+  alias: 'o',
 })
 .option('token', {
   describe: 'authorization token',
