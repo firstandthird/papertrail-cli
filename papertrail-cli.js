@@ -16,8 +16,13 @@ const argv = require('yargs')
   type: 'boolean',
   default: false
 })
+.option('follow', {
+  describe: 'listen for new events, refresh rate specified by --delay ',
+  type: 'boolean',
+  default: false
+})
 .option('delay', {
-  describe: 'number of seconds to delay',
+  describe: 'number of seconds to delay between refreshes',
   default: 2
 })
 .option('regex', {
@@ -26,16 +31,30 @@ const argv = require('yargs')
 })
 .option('token', {
   describe: 'authorization token',
-  optional: false
+  optional: false,
+  default: process.env.PAPERTRAIL_TOKEN
+})
+.option('count', {
+  alias: 'c',
+  describe: 'maximum number of events to show for each fetch',
+  default: 1000,
+  type: 'number'
 })
 .argv;
 
+if (argv._.length === 0) {
+  console.log('You must provide at least one search term');
+  return;
+}
 const token = argv.t || argv.token;
 const search = argv._.length > 1 ? argv._.join(' ') : `'${argv._[0]}'`;
-const host = `https://papertrailapp.com/api/v1/events/search.json?q=${search}`;
+const follow = argv.follow || argv.f;
+// in follow mode we only show 50 logs per refresh:
+const count = follow ? 50 : argv.count || argv.c;
 const delayInMs = argv.delay * 1000;
 let lastTimeQueried;
 let lastId; // last event id that was logged, to prevent dupes
+const host = `https://papertrailapp.com/api/v1/events/search.json?q=${search}&limit=${count}`;
 
 const printEvent = (event) => {
   const message = argv.o ? event.message.match(new RegExp(argv.o)) : event.message;
@@ -66,8 +85,9 @@ const execute = () => {
     if (payload.events.length !== 0) {
       lastTimeQueried = new Date(payload.events[payload.events.length - 1].received_at).getTime() / 1000;
     }
-    setTimeout(execute, delayInMs);
+    if (follow) {
+      setTimeout(execute, delayInMs);
+    }
   });
 };
-
 execute();
