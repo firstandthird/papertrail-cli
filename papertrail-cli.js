@@ -31,10 +31,11 @@ const argv = require('yargs')
 .argv;
 
 const token = argv.t || argv.token;
-const search = argv._.join(' ');
-const host = `https://papertrailapp.com/api/v1/events/search.json?q='${search}'`;
+const search = argv._.length > 1 ? argv._.join(' ') : `'${argv._[0]}'`;
+const host = `https://papertrailapp.com/api/v1/events/search.json?q=${search}`;
 const delayInMs = argv.delay * 1000;
 let lastTimeQueried;
+let lastId; // last event id that was logged, to prevent dupes
 
 const printEvent = (event) => {
   const message = argv.o ? event.message.match(new RegExp(argv.o)) : event.message;
@@ -55,7 +56,7 @@ const printEvent = (event) => {
 };
 
 const execute = () => {
-  const url = lastTimeQueried ? `${host}&min_time=${lastTimeQueried}` : host;
+  const url = lastTimeQueried ? `${host}&min_time=${lastTimeQueried + 1}` : host;
   wreck.get(url, { headers: {
       'X-Papertrail-Token': token
     },
@@ -63,7 +64,7 @@ const execute = () => {
   }, (err, res, payload) => {
     payload.events.forEach(printEvent);
     if (payload.events.length !== 0) {
-      lastTimeQueried = new Date(payload.events[payload.events.length - 1].generated_at).getTime() / 1000;
+      lastTimeQueried = new Date(payload.events[payload.events.length - 1].received_at).getTime() / 1000;
     }
     setTimeout(execute, delayInMs);
   });
