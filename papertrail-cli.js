@@ -28,8 +28,8 @@ const argv = require('yargs')
 .argv;
 
 const token = argv.t || argv.token;
-const search = argv._[0];
-const host = `https://papertrailapp.com/api/v1/events/search.json?$q=${search}`;
+const search = argv._.join(' ');
+const host = `https://papertrailapp.com/api/v1/events/search.json?q=${search}`;
 const delayInMs = argv.delay * 1000;
 let lastTimeQueried;
 
@@ -58,4 +58,5 @@ const execute = () => {
     setTimeout(execute, delayInMs);
   });
 };
+
 execute();
