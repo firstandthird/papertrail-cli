@@ -7,21 +7,25 @@ const argv = require('yargs')
   default: false
 })
 .option('system', {
+  alias: 's',
   describe: 'show the system for each event',
   type: 'boolean',
   default: false
 })
 .option('program', {
+  alias: 'p',
   describe: 'show the program for each event',
   type: 'boolean',
   default: false
 })
 .option('follow', {
+  alias: 'f',
   describe: 'listen for new events, refresh rate specified by --delay ',
   type: 'boolean',
   default: false
 })
 .option('delay', {
+  alias: 'd',
   describe: 'number of seconds to delay between refreshes',
   default: 2
 })
