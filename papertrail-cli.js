@@ -1,4 +1,5 @@
 const wreck = require('wreck');
+const chalk = require('chalk');
 
 const argv = require('yargs')
 .option('timestamp', {
@@ -63,13 +64,13 @@ const printEvent = (event) => {
   const message = argv.o ? event.message.match(new RegExp(argv.o)) : event.message;
   const array = [];
   if (argv.timestamp) {
-    array.push(event.generated_at);
+    array.push(chalk.gray(event.generated_at));
   }
   if (argv.system || argv.s) {
-    array.push(event.system);
+    array.push(chalk.yellow(event.system));
   }
   if (argv.program || argv.p) {
-    array.push(event.program);
+    array.push(chalk.blue(event.program));
   }
   array.push(message);
   if (message) {
