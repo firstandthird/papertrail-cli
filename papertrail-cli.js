@@ -4,6 +4,7 @@ const chalk = require('chalk');
 const argv = require('yargs')
 .option('timestamp', {
   describe: 'show the timestamp for each event',
+  alias: 't',
   type: 'boolean',
   default: false
 })
