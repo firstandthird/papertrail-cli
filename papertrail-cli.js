@@ -68,7 +68,7 @@ const printEvent = (event) => {
     array.push(chalk.gray(event.generated_at));
   }
   if (argv.system || argv.s) {
-    // if a system is specified only show messages for taht system
+    // only show system for events that have one specified:
     if (event.system !== undefined) {
       array.push(chalk.yellow(event.system));
     }
@@ -85,7 +85,6 @@ const printEvent = (event) => {
 const execute = () => {
   const host = `https://papertrailapp.com/api/v1/events/search.json?q=${search}&limit=${count}`;
   const url = lastTimeQueried ? `${host}&min_time=${lastTimeQueried + 1}` : host;
-
   wreck.get(url, { headers: {
       'X-Papertrail-Token': token
     },
