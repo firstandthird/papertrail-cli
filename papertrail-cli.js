@@ -52,7 +52,7 @@ if (argv._.length === 0) {
   console.log('You must provide at least one search term');
   return;
 }
-const token = argv.t || argv.token;
+const token = argv.token;
 const search = argv._.length > 1 ? argv._.join(' ') : `'${argv._[0]}'`;
 const follow = argv.follow || argv.f;
 // in follow mode we only show 50 logs per refresh:
@@ -64,7 +64,7 @@ let lastId; // last event id that was logged, to prevent dupes
 const printEvent = (event) => {
   const message = argv.o ? event.message.match(new RegExp(argv.o)) : event.message;
   const array = [];
-  if (argv.timestamp) {
+  if (argv.timestamp || argv.t) {
     array.push(chalk.gray(event.generated_at));
   }
   if (argv.system || argv.s) {
