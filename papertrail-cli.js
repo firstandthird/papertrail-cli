@@ -10,7 +10,7 @@ const argv = require('yargs')
 })
 .option('source', {
   alias: 's',
-  describe: 'show the source for each event',
+  describe: 'show the source (source_name) of each event',
   type: 'boolean',
   default: false
 })
