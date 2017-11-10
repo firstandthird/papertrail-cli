@@ -8,9 +8,9 @@ const argv = require('yargs')
   type: 'boolean',
   default: false
 })
-.option('system', {
+.option('source', {
   alias: 's',
-  describe: 'show the system for each event',
+  describe: 'show the source (source_name) of each event',
   type: 'boolean',
   default: false
 })
@@ -67,8 +67,8 @@ const printEvent = (event) => {
   if (argv.timestamp || argv.t) {
     array.push(chalk.gray(event.generated_at));
   }
-  if (argv.system || argv.s) {
-    array.push(chalk.yellow(event.system));
+  if (argv.source || argv.s) {
+    array.push(chalk.yellow(event.source_name));
   }
   if (argv.program || argv.p) {
     array.push(chalk.blue(event.program));
