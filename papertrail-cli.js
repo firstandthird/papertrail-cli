@@ -59,7 +59,7 @@ const follow = argv.follow || argv.f;
 // in follow mode we only show 50 logs per refresh:
 let count = follow ? 50 : argv.count || argv.c;
 const delayInMs = argv.delay * 1000;
-let lastTimeQueried;
+let lastIdQueried;
 let lastId; // last event id that was logged, to prevent dupes
 
 const printEvent = (event) => {
@@ -89,9 +89,9 @@ const execute = () => {
   const host = `https://papertrailapp.com/api/v1/events/search.json?q=${search}&limit=${count}`;
   let url;
   if (follow) {
-    url = lastTimeQueried ? `${host}&min_time=${lastTimeQueried + 1}` : host;
+    url = lastIdQueried ? `${host}&min_id=${lastIdQueried}` : host;
   } else {
-    url = lastTimeQueried ? `${host}&max_time=${lastTimeQueried - 1}` : host;
+    url = lastIdQueried ? `${host}&max_id=${lastIdQueried}` : host;
   }
   wreck.get(url, { headers: {
       'X-Papertrail-Token': token
@@ -103,16 +103,18 @@ const execute = () => {
     }
     // list events in order recieved if following, otherwise print them newest to oldest:
     payload.events.forEach(printEvent);
-    if (payload.events.length !== 0) {
-      lastTimeQueried = new Date(payload.events[payload.events.length - 1].received_at).getTime() / 1000;
-    }
     if (follow) {
       // to avoid missing logs we up the count in follow mode:
       count = 1000;
+      if (payload.events.length !== 0) {
+        // last id will be the highest one:
+        lastIdQueried = payload.max_id;
+      }
       setTimeout(execute, delayInMs);
+
     } else {
       rl.question('Hit enter to continue or ctrl-c to quit', answer => {
-        lastTimeQueried = new Date(payload.events[ payload.events.length > 10 ? 9 : payload.events.length - 1].received_at).getTime() / 1000;
+        lastIdQueried = payload.min_id;//events[ payload.events.length > 10 ? 9 : payload.events.length - 1].id
         execute();
       });
     }
