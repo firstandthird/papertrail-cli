@@ -1,5 +1,6 @@
 const wreck = require('wreck');
 const chalk = require('chalk');
+const readline = require('readline');
 
 const argv = require('yargs')
 .option('timestamp', {
@@ -43,7 +44,7 @@ const argv = require('yargs')
 .option('count', {
   alias: 'c',
   describe: 'maximum number of events to show, does not apply to refreshes when using follow mode',
-  default: 1000,
+  default: 10,
   type: 'number'
 })
 .argv;
@@ -79,14 +80,28 @@ const printEvent = (event) => {
   }
 };
 
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
 const execute = () => {
   const host = `https://papertrailapp.com/api/v1/events/search.json?q=${search}&limit=${count}`;
-  const url = lastTimeQueried ? `${host}&min_time=${lastTimeQueried + 1}` : host;
+  let url;
+  if (follow) {
+    url = lastTimeQueried ? `${host}&min_time=${lastTimeQueried + 1}` : host;
+  } else {
+    url = lastTimeQueried ? `${host}&max_time=${lastTimeQueried - 1}` : host;
+  }
   wreck.get(url, { headers: {
       'X-Papertrail-Token': token
     },
     json: true
   }, (err, res, payload) => {
+    if (!follow) {
+      payload.events = payload.events.reverse();
+    }
+    // list events in order recieved if following, otherwise print them newest to oldest:
     payload.events.forEach(printEvent);
     if (payload.events.length !== 0) {
       lastTimeQueried = new Date(payload.events[payload.events.length - 1].received_at).getTime() / 1000;
@@ -95,6 +110,11 @@ const execute = () => {
       // to avoid missing logs we up the count in follow mode:
       count = 1000;
       setTimeout(execute, delayInMs);
+    } else {
+      rl.question('Hit enter to continue or ctrl-c to quit', answer => {
+        lastTimeQueried = new Date(payload.events[ payload.events.length > 10 ? 9 : payload.events.length - 1].received_at).getTime() / 1000;
+        execute();
+      });
     }
   });
 };
