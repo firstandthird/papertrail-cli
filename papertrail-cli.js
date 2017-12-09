@@ -60,12 +60,11 @@ if (argv._.length === 0) {
   return;
 }
 const token = argv.token;
-let search;
+let search = argv._.join(' ');
 if (argv.exclude) {
-  search = encodeURI(argv._.length > 1 ? `${argv._.join(' ')} -"${argv.exclude}"` : `${argv._[0]} -"${argv.exclude}"`);
-} else {
-  search = encodeURI(argv._.length > 1 ? argv._.join(' ') : `'${argv._[0]}'`);
+  search += ` -"${argv.exclude}"`;
 }
+search = encodeURIComponent(search);
 const follow = argv.follow || argv.f;
 // in follow mode we only show 50 logs per refresh:
 let count = follow ? 50 : argv.count || argv.c;
