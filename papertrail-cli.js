@@ -37,6 +37,7 @@ const argv = require('yargs')
   alias: 'o',
 })
 .option('exclude', {
+  alias: 'x',
   describe: 'exclude events that contain this term',
   default: false,
   type: 'string'
@@ -61,11 +62,10 @@ if (argv._.length === 0) {
 const token = argv.token;
 let search;
 if (argv.exclude) {
-  search = argv._.length > 1 ? `'${argv._.join(' ')} -"${argv.exclude}"` : `'${argv._[0]} -"${argv.exclude}"'`;
+  search = encodeURI(argv._.length > 1 ? `${argv._.join(' AND ')} -"${argv.exclude}"` : `${argv._[0]} -"${argv.exclude}"`);
 } else {
-  search = argv._.length > 1 ? argv._.join(' ') : `'${argv._[0]}'`;
+  search = encodeURI(argv._.length > 1 ? argv._.join(' AND ') : `'${argv._[0]}'`);
 }
-
 const follow = argv.follow || argv.f;
 // in follow mode we only show 50 logs per refresh:
 let count = follow ? 50 : argv.count || argv.c;
@@ -98,7 +98,6 @@ const rl = readline.createInterface({
 
 const execute = () => {
   const host = `https://papertrailapp.com/api/v1/events/search.json?q=${search}&limit=${count}`;
-  console.log(host)
   let url;
   if (follow) {
     url = lastIdQueried ? `${host}&min_id=${lastIdQueried}` : host;
