@@ -36,6 +36,12 @@ const argv = require('yargs')
   describe: 'regex to match',
   alias: 'o',
 })
+.option('exclude', {
+  alias: 'x',
+  describe: 'exclude events that contain this term',
+  default: false,
+  type: 'string'
+})
 .option('token', {
   describe: 'authorization token',
   optional: false,
@@ -54,7 +60,11 @@ if (argv._.length === 0) {
   return;
 }
 const token = argv.token;
-const search = argv._.length > 1 ? argv._.join(' ') : `'${argv._[0]}'`;
+let search = argv._.join(' ');
+if (argv.exclude) {
+  search += ` -"${argv.exclude}"`;
+}
+search = encodeURIComponent(search);
 const follow = argv.follow || argv.f;
 // in follow mode we only show 50 logs per refresh:
 let count = follow ? 50 : argv.count || argv.c;
