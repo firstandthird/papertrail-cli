@@ -89,20 +89,30 @@ const runAll = async () => {
     return;
   }
 
+  let savedSearch;
   let search;
   // --search [name] without an argument just re-runs the saved search:
-  if (argv.search && argv._.length === 0) {
+  if (argv.search) {
     // get the indicated search:
     const execute = async () => {
       const searches = await getSearches();
       for (let i = 0; i < searches.length; i++) {
         if (searches[i].name === argv.search) {
-          search = searches[i].query;
+          savedSearch = searches[i];
           break;
         }
       }
+      if (!savedSearch) {
+        console.log(`Unable to find a saved search with the name "${argv.search}"`);
+        process.exit();
+      }
+      search = savedSearch.query;
     };
     await execute();
+    if (argv._.length > 0) {
+      // --search [name] [term] with an argument adds the argument to the saved search query
+      search = `${savedSearch.query} ${argv._.join(' ')}`;
+    }
   }
   if (!search) {
     if (argv._.length === 0) {
