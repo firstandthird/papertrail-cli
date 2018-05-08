@@ -115,7 +115,6 @@ const runAll = async () => {
     }
   }
   search = encodeURIComponent(search);
-  console.log(search);
   const follow = argv.follow || argv.f;
   // in follow mode we only show 50 logs per refresh:
   let count = follow ? 50 : argv.count || argv.c;
