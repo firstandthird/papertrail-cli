@@ -64,8 +64,6 @@ const token = argv.token;
 
 if (argv.searches) {
   const execute = async () => {
-    console.log('searches');
-    console.log('searches');
     const { res, payload } = await wreck.get('https://papertrailapp.com/api/v1/searches.json', { headers: {
         'X-Papertrail-Token': token
       },
