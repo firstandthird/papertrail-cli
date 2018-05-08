@@ -69,7 +69,9 @@ if (argv.searches) {
       },
       json: true
     });
-    console.log(payload);
+    payload.forEach(item => {
+      console.log(`Name: ${chalk.yellow(item.name)} Query: ${chalk.yellow(item.query)} Group: ${chalk.yellow(item.group.name)}`);
+    })
   };
   execute();
   return;
