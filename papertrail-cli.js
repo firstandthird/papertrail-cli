@@ -15,6 +15,11 @@ const argv = require('yargs')
   type: 'boolean',
   default: false
 })
+.option('searches', {
+  describe: 'list saved searches',
+  type: 'boolean',
+  default: false
+})
 .option('program', {
   alias: 'p',
   describe: 'show the program for each event',
@@ -55,11 +60,26 @@ const argv = require('yargs')
 })
 .argv;
 
+const token = argv.token;
+
+if (argv.searches) {
+  const execute = async () => {
+    console.log('searches');
+    console.log('searches');
+    const { res, payload } = await wreck.get('https://papertrailapp.com/api/v1/searches.json', { headers: {
+        'X-Papertrail-Token': token
+      },
+      json: true
+    });
+    console.log(payload);
+  };
+  execute();
+  return;
+}
 if (argv._.length === 0) {
   console.log('You must provide at least one search term');
   return;
 }
-const token = argv.token;
 let search = argv._.join(' ');
 if (argv.exclude) {
   search += ` -"${argv.exclude}"`;
@@ -95,7 +115,7 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-const execute = () => {
+const execute = async () => {
   const host = `https://papertrailapp.com/api/v1/events/search.json?q=${search}&limit=${count}`;
   let url;
   if (follow) {
@@ -103,31 +123,30 @@ const execute = () => {
   } else {
     url = lastIdQueried ? `${host}&max_id=${lastIdQueried}` : host;
   }
-  wreck.get(url, { headers: {
+  const { res, payload } = await wreck.get(url, { headers: {
       'X-Papertrail-Token': token
     },
     json: true
-  }, (err, res, payload) => {
-    if (!follow) {
-      payload.events = payload.events.reverse();
-    }
-    // list events in order recieved if following, otherwise print them newest to oldest:
-    payload.events.forEach(printEvent);
-    if (follow) {
-      // to avoid missing logs we up the count in follow mode:
-      count = 1000;
-      if (payload.events.length !== 0) {
-        // last id will be the highest one:
-        lastIdQueried = payload.max_id;
-      }
-      setTimeout(execute, delayInMs);
-
-    } else {
-      rl.question('Hit enter to continue or ctrl-c to quit', answer => {
-        lastIdQueried = payload.min_id;//events[ payload.events.length > 10 ? 9 : payload.events.length - 1].id
-        execute();
-      });
-    }
   });
+  if (!follow) {
+    payload.events = payload.events.reverse();
+  }
+  // list events in order recieved if following, otherwise print them newest to oldest:
+  payload.events.forEach(printEvent);
+  if (follow) {
+    // to avoid missing logs we up the count in follow mode:
+    count = 1000;
+    if (payload.events.length !== 0) {
+      // last id will be the highest one:
+      lastIdQueried = payload.max_id;
+    }
+    setTimeout(execute, delayInMs);
+
+  } else {
+    rl.question('Hit enter to continue or ctrl-c to quit', answer => {
+      lastIdQueried = payload.min_id;//events[ payload.events.length > 10 ? 9 : payload.events.length - 1].id
+      execute();
+    });
+  }
 };
 execute();
