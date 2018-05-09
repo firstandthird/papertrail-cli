@@ -91,6 +91,7 @@ const runAll = async () => {
 
   let savedSearch;
   let search;
+  let group;
   // --search [name] without an argument just re-runs the saved search:
   if (argv.search) {
     // get the indicated search:
@@ -106,7 +107,8 @@ const runAll = async () => {
         console.log(`Unable to find a saved search with the name "${argv.search}"`);
         process.exit();
       }
-      search = savedSearch.query;
+      search = savedSearch.query
+      group = savedSearch.group.id;
     };
     await execute();
     if (argv._.length > 0) {
@@ -154,6 +156,10 @@ const runAll = async () => {
     input: process.stdin,
     output: process.stdout
   });
+  // add the group id to search in if indicated:
+  if (group) {
+    search = `${search}&group_id=${group}`
+  }
 
   const execute = async () => {
     const host = `https://papertrailapp.com/api/v1/events/search.json?q=${search}&limit=${count}`;
